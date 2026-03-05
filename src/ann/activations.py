@@ -28,4 +28,23 @@ class Sigmoid:
 class Tanh:
     def forward(self,x):
         self.x = x
-        
+        self.res = np.tanh(x) 
+        return self.res
+    
+    __call__ = forward
+
+    def backward(self, delta):
+        return delta * (1-np.square(self.res))
+    
+class Softmax:
+    def forward(self, x):
+        x = x - np.max(x, axis=1, keepdims=True)  
+        res = np.exp(x)
+        self.res = res / np.sum(res, axis=1, keepdims=True)
+        return self.res
+
+    __call__ = forward
+
+    def backward(self, delta):
+        dot = np.sum(self.res * delta, axis=1, keepdims=True)
+        return self.res * (delta - dot)
