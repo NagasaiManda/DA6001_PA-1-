@@ -124,7 +124,7 @@ def parse_arguments():
     parser.add_argument(
         "-w_p", "--wandb_project",
         type=str,
-        required=False,
+        default=None,
         help="Weights & Biases project ID"
     )
 
