@@ -113,7 +113,7 @@ def parse_arguments():
 
     # Weight initialization
     parser.add_argument(
-        "-wi", "--weight_init",
+        "-w_i", "--weight_init",
         type=str,
         choices=["random", "xavier"],
         required=True,
@@ -122,7 +122,7 @@ def parse_arguments():
 
     # W&B project
     parser.add_argument(
-        "-wp", "--wandb_project",
+        "-w_p", "--wandb_project",
         type=str,
         required=False,
         help="Weights & Biases project ID"
