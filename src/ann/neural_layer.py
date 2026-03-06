@@ -27,8 +27,8 @@ class fc:
 
     def backward(self, delta):
         B = self.x.shape[0]
-        self.grad_W += self.x.T @ delta / B
-        self.grad_b += np.sum(delta, axis=0, keepdims=True) / B
+        self.grad_W[...] = self.x.T @ delta / B
+        self.grad_b[...] = np.sum(delta, axis=0, keepdims=True) / B
         return delta @ self.W.T
 
     def zero_grad(self):
