@@ -187,6 +187,10 @@ class NeuralNetwork:
                         p[:] = original_params[i]
 
                 self.update_weights()
+
+                for layer in self.layers:
+                    if isinstance(layer, fc):
+                        layer.zero_grad()
             
             eval = self.evaluate(X_val, y_val)
 
