@@ -125,7 +125,6 @@ class NeuralNetwork:
         for layer in reversed(self.layers):
             delta = layer.backward(delta)
             if isinstance(layer, fc):
-                layer.grad_W += self.weight_decay * layer.W
                 grad_W_list.append(layer.grad_W.copy())
                 grad_b_list.append(layer.grad_b.copy())
 
