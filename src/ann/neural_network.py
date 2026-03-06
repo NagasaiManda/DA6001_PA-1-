@@ -16,20 +16,39 @@ class NeuralNetwork:
     """
 
     def __init__(self, cli_args):
-        self.epochs = cli_args.epochs
-        self.batch_size = cli_args.batch_size
-        self.weight_decay = cli_args.weight_decay
-        self.wandb_project = cli_args.wandb_project
-        self.model_save_path = cli_args.model_path
+        self.epochs = getattr(cli_args, "epochs", 10)
+        self.batch_size = getattr(cli_args, "batch_size", 62)
+        self.weight_decay = getattr(cli_args, "weight_decay", 0.0)
 
-        self.learning_rate = cli_args.learning_rate
-        self.optimizer_name = cli_args.optimizer
-        self.dataset = cli_args.dataset
-        self.loss = cli_args.loss
-        self.num_layers = cli_args.num_layers
-        self.hidden_size = cli_args.hidden_size
-        self.activation = cli_args.activation
-        self.weight_init = cli_args.weight_init
+        self.wandb_project = getattr(cli_args, "wandb_project", None)
+        self.model_save_path = getattr(cli_args, "model_path", "models/model.npy")
+
+        self.learning_rate = getattr(cli_args, "learning_rate", 0.001)
+        self.optimizer_name = getattr(cli_args, "optimizer", "rmsprop")
+        self.dataset = getattr(cli_args, "dataset", "mnist")
+        self.loss = getattr(cli_args, "loss", "cross_entropy")
+
+        self.num_layers = getattr(cli_args, "num_layers", 2)
+        self.hidden_size = getattr(cli_args, "hidden_size", [128, 64])
+        self.activation = getattr(cli_args, "activation", "relu")
+        self.weight_init = getattr(cli_args, "weight_init", "xavier")
+
+
+
+        # self.epochs = cli_args.epochs
+        # self.batch_size = cli_args.batch_size
+        # self.weight_decay = cli_args.weight_decay
+        # self.wandb_project = cli_args.wandb_project
+        # self.model_save_path = cli_args.model_path
+
+        # self.learning_rate = cli_args.learning_rate
+        # self.optimizer_name = cli_args.optimizer
+        # self.dataset = cli_args.dataset
+        # self.loss = cli_args.loss
+        # self.num_layers = cli_args.num_layers
+        # self.hidden_size = cli_args.hidden_size
+        # self.activation = cli_args.activation
+        # self.weight_init = cli_args.weight_init
 
         self.layers = []
         input_dim = 784
