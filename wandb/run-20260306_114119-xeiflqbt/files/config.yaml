@@ -1,0 +1,31 @@
+_wandb:
+    value:
+        cli_version: 0.25.0
+        e:
+            jggftiwtzalgpqwp8jthbo5fipo4kkau:
+                codePath: src\wandb_report_1.py
+                codePathLocal: src\wandb_report_1.py
+                email: ee23b042@smail.iitm.ac.in
+                executable: C:\Users\Nagasai\OneDrive\Desktop\Acads\Sem 6\DA6401\Assignment-1\.venv\Scripts\python.exe
+                git:
+                    commit: 4a8145270d5ad6b544d9fb52937956a6a73b5b48
+                    remote: https://github.com/NagasaiManda/DA6001_PA-1-.git
+                host: LAPTOP-56NBTBCR
+                os: Windows-11-10.0.26200-SP0
+                program: C:\Users\Nagasai\OneDrive\Desktop\Acads\Sem 6\DA6401\Assignment-1\da6401_assignment_1\src\wandb_report_1.py
+                python: CPython 3.13.1
+                root: C:\Users\Nagasai\OneDrive\Desktop\Acads\Sem 6\DA6401\Assignment-1\da6401_assignment_1
+                startedAt: "2026-03-06T06:11:19.786753Z"
+                writerId: jggftiwtzalgpqwp8jthbo5fipo4kkau
+        m: []
+        python_version: 3.13.1
+        t:
+            "3":
+                - 13
+            "4": 3.13.1
+            "5": 0.25.0
+            "8":
+                - 2
+                - 3
+            "12": 0.25.0
+            "13": windows-amd64

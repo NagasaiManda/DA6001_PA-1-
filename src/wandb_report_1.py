@@ -48,3 +48,10 @@ wandb.log({"MNIST_Samples": table})
 
 wandb.finish()
 print("5 sample images from each MNIST class logged to W&B!")
+
+
+
+
+# Add this in every epoch
+# eval = self.evaluate(X_val, y_val)
+#     val_accuracies.append(eval["accuracy"])
