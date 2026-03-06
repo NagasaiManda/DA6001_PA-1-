@@ -10,7 +10,7 @@ class fc:
         self.out_dims = out_dims
 
         if weight_init == 0:
-            self.W = 0.01 * np.random.randn((in_dims, out_dims))
+            self.W = 0.01 * np.random.randn(in_dims, out_dims)
         else:
             std = np.sqrt(2 / (self.in_dims + self.out_dims))
             self.W = np.random.normal(0, std, (in_dims, out_dims))
@@ -27,8 +27,8 @@ class fc:
 
     def backward(self, delta):
         B = self.x.shape[0]
-        self.grad_W[...] = self.x.T @ delta / B
-        self.grad_b[...] = np.sum(delta, axis=0, keepdims=True) / B
+        self.grad_W[...] = self.x.T @ delta 
+        self.grad_b[...] = np.sum(delta, axis=0, keepdims=True) 
         return delta @ self.W.T
 
     def zero_grad(self):

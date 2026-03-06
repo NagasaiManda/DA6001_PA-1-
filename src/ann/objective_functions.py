@@ -23,7 +23,7 @@ class MSE:
     __call__ = forward
     def backward(self, y_true, y_preds):
         B = y_preds.shape[0]
-        return 2*(y_preds-y_true)
+        return 2*(y_preds-y_true) / B
 
 class CrossEntropyWithSoftmax:
     def forward(self, logits, y_true):
@@ -39,6 +39,6 @@ class CrossEntropyWithSoftmax:
         exp_logits = np.exp(logits)
         y_preds = exp_logits / np.sum(exp_logits, axis=1, keepdims=True)
         B = y_preds.shape[0]
-        return (y_preds - y_true) 
+        return (y_preds - y_true) / B
 
     

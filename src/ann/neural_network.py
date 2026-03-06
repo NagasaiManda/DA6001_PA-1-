@@ -114,7 +114,9 @@ class NeuralNetwork:
         - `grad_Ws[0]` is gradient for the last (output) layer weights,
           `grad_bs[0]` is gradient for the last layer biases, and so on.
         """
-
+        for layer in self.layers:
+            if isinstance(layer, fc):
+                layer.zero_grad()
         grad_W_list = []
         grad_b_list = []
 
@@ -188,9 +190,6 @@ class NeuralNetwork:
 
                 self.update_weights()
 
-                for layer in self.layers:
-                    if isinstance(layer, fc):
-                        layer.zero_grad()
             
             eval = self.evaluate(X_val, y_val)
 
