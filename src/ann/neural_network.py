@@ -136,6 +136,8 @@ class NeuralNetwork:
             self.grad_W[i] = gw
             self.grad_b[i] = gb
 
+        self.grad_W = self.grad_W[::-1]
+        self.grad_b = self.grad_b[::-1]
         # print("Shape of grad_Ws:", self.grad_W.shape, self.grad_W[1].shape)
         # print("Shape of grad_bs:", self.grad_b.shape, self.grad_b[1].shape)
         return self.grad_W, self.grad_b
