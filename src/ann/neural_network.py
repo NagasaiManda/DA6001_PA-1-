@@ -21,7 +21,7 @@ class NeuralNetwork:
         self.weight_decay = getattr(cli_args, "weight_decay", 0.0)
 
         self.wandb_project = getattr(cli_args, "wandb_project", None)
-        self.model_save_path = getattr(cli_args, "model_path", "models/model.npy")
+        self.model_save_path = getattr(cli_args, "model_path", "src/best_model.npy")
 
         self.learning_rate = getattr(cli_args, "learning_rate", 0.001)
         self.optimizer_name = getattr(cli_args, "optimizer", "rmsprop")
