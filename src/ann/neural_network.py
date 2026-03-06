@@ -5,7 +5,7 @@ Handles forward and backward propagation loops
 import numpy as np
 from .neural_layer import fc
 from .activations import ReLU, Sigmoid, Tanh, Softmax
-from .objective_functions import CrossEntropy, MSE, CrossEntropyWithSoftmax
+from .objective_functions import MSE, CrossEntropyWithSoftmax
 from .optimizers import SGD, Momentum, RMSprop, NAG
 from utils.data_loader import load_data
 from sklearn.metrics import precision_score, recall_score, f1_score
@@ -119,10 +119,11 @@ class NeuralNetwork:
         grad_b_list = []
 
         # Backprop through layers in reverse; collect grads so that index 0 = last layer
-        delta = self.loss_fn.backward()
+        delta = self.loss_fn.backward(y_true, y_pred)
         for layer in reversed(self.layers):
             delta = layer.backward(delta)
             if isinstance(layer, fc):
+                layer.grad_W += self.weight_decay * layer.W
                 grad_W_list.append(layer.grad_W.copy())
                 grad_b_list.append(layer.grad_b.copy())
 
