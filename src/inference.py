@@ -26,7 +26,7 @@ def parse_arguments():
         "-d", "--dataset",
         type=str,
         choices=["mnist", "fashion_mnist"],
-        required=True,
+        default="mnist",
         help="Choose dataset: mnist or fashion_mnist"
     )
 
@@ -34,7 +34,7 @@ def parse_arguments():
     parser.add_argument(
         "-e", "--epochs",
         type=int,
-        required=True,
+        default=10,
         help="Number of training epochs"
     )
 
@@ -42,7 +42,7 @@ def parse_arguments():
     parser.add_argument(
         "-b", "--batch_size",
         type=int,
-        required=True,
+        default=32,
         help="Mini-batch size"
     )
 
@@ -51,7 +51,7 @@ def parse_arguments():
         "-l", "--loss",
         type=str,
         choices=["mean_squared_error", "cross_entropy"],
-        required=True,
+        default="cross_entropy",
         help="Loss function"
     )
 
@@ -60,7 +60,7 @@ def parse_arguments():
         "-o", "--optimizer",
         type=str,
         choices=["sgd", "momentum", "nag", "rmsprop"],
-        required=True,
+        default="rmsprop",
         help="Optimizer"
     )
 
@@ -68,7 +68,7 @@ def parse_arguments():
     parser.add_argument(
         "-lr", "--learning_rate",
         type=float,
-        required=True,
+        default=0.001,
         help="Initial learning rate"
     )
 
@@ -84,7 +84,7 @@ def parse_arguments():
     parser.add_argument(
         "-nhl", "--num_layers",
         type=int,
-        required=True,
+        default=2,
         help="Number of hidden layers"
     )
 
@@ -93,7 +93,7 @@ def parse_arguments():
         "-sz", "--hidden_size",
         type=int,
         nargs="+",
-        required=True,
+        default=[128, 64],
         help="Number of neurons in each hidden layer"
     )
 
@@ -102,7 +102,7 @@ def parse_arguments():
         "-a", "--activation",
         type=str,
         choices=["sigmoid", "tanh", "relu"],
-        required=True,
+        default="relu",
         help="Activation function for hidden layers"
     )
 
@@ -111,7 +111,7 @@ def parse_arguments():
         "-w_i", "--weight_init",
         type=str,
         choices=["random", "xavier"],
-        required=True,
+        default="xavier",
         help="Weight initialization method"
     )
 

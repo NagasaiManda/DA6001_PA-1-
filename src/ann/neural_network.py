@@ -9,6 +9,7 @@ from .objective_functions import CrossEntropy, MSE, CrossEntropyWithSoftmax
 from .optimizers import SGD, Momentum, RMSprop, NAG
 from utils.data_loader import load_data
 from sklearn.metrics import precision_score, recall_score, f1_score
+from sklearn.model_selection import train_test_split
 
 class NeuralNetwork:
     """
@@ -145,6 +146,7 @@ class NeuralNetwork:
     def train(self):
         X_train = self.x_train
         y_train = self.y_train
+        X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.1, random_state=42)
         epochs = self.epochs
         batch_size = self.batch_size
         num_samples = X_train.shape[0]
@@ -184,9 +186,11 @@ class NeuralNetwork:
                         p[:] = original_params[i]
 
                 self.update_weights()
+            
+            eval = self.evaluate(X_val, y_val)
 
             print(f"Epoch {epoch+1}/{epochs} completed.")
-            print(f"Average Loss: {running_loss/num_batches:.4f}")
+            print(f"Average Loss: {running_loss/num_batches:.4f}, Validation Loss: {eval['loss']:.4f}")
 
     def evaluate(self, X, y):
         logits = self.forward(X)
