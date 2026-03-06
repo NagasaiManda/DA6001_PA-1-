@@ -115,8 +115,7 @@ class NeuralNetwork:
           `grad_bs[0]` is gradient for the last layer biases, and so on.
         """
 
-        self.loss.forward(logits, y_true)
-        grad = self.loss.backward()
+        self.loss_fn.forward(logits, y_true)
         for layer in self.layers:
             if isinstance(layer, fc):
                 layer.zero_grad()
