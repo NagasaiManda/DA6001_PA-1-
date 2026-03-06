@@ -4,7 +4,7 @@ Handles forward and backward propagation loops
 """
 import numpy as np
 from .neural_layer import fc
-from .activations import ReLU, Sigmoid, Tanh, Softmax
+from .activations import ReLU, Sigmoid, Tanh
 from .objective_functions import MSE, CrossEntropyWithSoftmax
 from .optimizers import SGD, Momentum, RMSprop, NAG
 from utils.data_loader import load_data
@@ -239,3 +239,5 @@ class NeuralNetwork:
                     layer.b = weight_dict[b_key].copy()
 
                 idx += 1
+
+
