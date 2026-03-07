@@ -32,13 +32,12 @@ class CrossEntropyWithSoftmax:
         logits = logits - np.max(logits, axis=1, keepdims=True)
         exp_logits = np.exp(logits)
         self.y_preds = exp_logits / np.sum(exp_logits, axis=1, keepdims=True)
-        return -np.mean(np.sum(y_true * np.log(self.y_preds), axis=1))
+        # Avoid log(0) from underflowed softmax probabilities.
+        safe_preds = np.clip(self.y_preds, 1e-12, 1.0)
+        return -np.mean(np.sum(y_true * np.log(safe_preds), axis=1))
 
     __call__ = forward
     def backward(self, y_true, logits):
-        logits = logits - np.max(logits, axis=1, keepdims=True)
-        exp_logits = np.exp(logits)
-        y_preds = exp_logits / np.sum(exp_logits, axis=1, keepdims=True)
-        return (y_preds - y_true)/y_preds.shape[0]
+        return (self.y_preds - y_true) / self.y_preds.shape[0]
 
     

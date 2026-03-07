@@ -17,7 +17,12 @@ class ReLU:
 class Sigmoid:
     def forward(self,x):
         self.x = x
-        self.res = 1/(1+np.exp(-x))
+        # Numerically stable sigmoid to avoid overflow warnings for large |x|.
+        self.res = np.empty_like(x)
+        pos_mask = x >= 0
+        self.res[pos_mask] = 1.0 / (1.0 + np.exp(-x[pos_mask]))
+        exp_x = np.exp(x[~pos_mask])
+        self.res[~pos_mask] = exp_x / (1.0 + exp_x)
         return self.res
     
     __call__ = forward

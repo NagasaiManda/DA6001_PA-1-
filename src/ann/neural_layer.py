@@ -36,4 +36,3 @@ class fc:
         self.grad_b[...] = 0
 
     
-

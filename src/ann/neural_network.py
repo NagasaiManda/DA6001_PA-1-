@@ -158,12 +158,14 @@ class NeuralNetwork:
         batch_size = self.batch_size
         num_samples = X_train.shape[0]
 
-        for epoch in range(epochs):
-            indices = np.arange(num_samples)
-            np.random.shuffle(indices)
+        indices = np.arange(num_samples)
+        np.random.shuffle(indices)
 
-            X_shuffled = X_train[indices]
-            y_shuffled = y_train[indices]
+        X_shuffled = X_train[indices]
+        y_shuffled = y_train[indices]
+
+        for epoch in range(epochs):
+            
 
             running_loss = 0.0
             num_batches = 0
@@ -200,9 +202,9 @@ class NeuralNetwork:
             print(f"Average Loss: {running_loss/num_batches:.4f}, Validation Loss: {eval_val['loss']:.4f}")
 
         print("Training Accuracy: {:.4f}".format(eval_train["accuracy"]))
-        print("Validation Accuracy: {:.4f}".format(eval_val["accuracy"]))
         print("Test Accuracy: {:.4f}".format(eval_test["accuracy"]))
-        return eval_train["accuracy"], eval_val["accuracy"], eval_test["accuracy"], eval_train["loss"], eval_val["loss"], eval_test["loss"]
+        print("Train f1 Score: {:.4f}".format(eval_train["f1"]))
+        print("Test f1 Score: {:.4f}".format(eval_test["f1"]))
 
     def evaluate(self, X, y):
         logits = self.forward(X)
@@ -253,5 +255,3 @@ class NeuralNetwork:
                     layer.b = weight_dict[b_key].copy()
 
                 idx += 1
-
-
