@@ -115,6 +115,7 @@ class NeuralNetwork:
         - `grad_Ws[0]` is gradient for the last (output) layer weights,
           `grad_bs[0]` is gradient for the last layer biases, and so on.
         """
+        self.loss_fn.forward(logits, y_true)
         for layer in self.layers:
             if isinstance(layer, fc):
                 layer.zero_grad()
@@ -122,7 +123,7 @@ class NeuralNetwork:
         grad_b_list = []
 
         # Backprop through layers in reverse; collect grads so that index 0 = last layer
-        delta = self.loss_fn.backward(y_true, logits)
+        delta = self.loss_fn.backward()
         for layer in reversed(self.layers):
             delta = layer.backward(delta)
             if isinstance(layer, fc):
