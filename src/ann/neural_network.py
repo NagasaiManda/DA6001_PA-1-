@@ -175,6 +175,8 @@ class NeuralNetwork:
 
                     for i, p in enumerate(self.parameters["params"]):
                         p -= self.optimizer.gamma * self.optimizer.v[i]
+                
+                
 
                 # Forward pass to compute logits and loss, then backward pass to compute gradients
                 logits = self.forward(X_batch)
@@ -193,12 +195,14 @@ class NeuralNetwork:
 
             # use eval_val for validation loss monitoring
             eval_val = self.evaluate(X_val, y_val)
+            eval_test = self.evaluate(self.x_test, self.y_test)
+            eval_train = self.evaluate(X_train, y_train)
             print(f"Epoch {epoch+1}/{epochs} completed.")
             print(f"Average Loss: {running_loss/num_batches:.4f}, Validation Loss: {eval_val['loss']:.4f}")
+            print(f"Training Accuracy: {eval_train['accuracy']:.4f}, Validation Accuracy: {eval_val['accuracy']:.4f}")
 
         # After training is complete, evaluate on both training and test sets to report final metrics
-        eval_test = self.evaluate(self.x_test, self.y_test)
-        eval_train = self.evaluate(X_train, y_train)
+        
 
         print("Training Accuracy: {:.4f}".format(eval_train["accuracy"]))
         print("Test Accuracy: {:.4f}".format(eval_test["accuracy"]))
