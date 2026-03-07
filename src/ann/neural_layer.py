@@ -9,6 +9,7 @@ class fc:
         self.in_dims = in_dims
         self.out_dims = out_dims
 
+        # Weight initialization: If weight_init=0, use small random values; otherwise, use Xavier initialization
         if weight_init == 0:
             self.W = 0.01 * np.random.randn(in_dims, out_dims)
         else:

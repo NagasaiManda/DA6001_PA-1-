@@ -20,6 +20,8 @@ class SGD:
         for grad in self.grads:
             grad[...] = 0
 
+
+
 class Momentum:
     def __init__(self, parameters, gamma=0.9, lr=0.01, weight_decay=0.0):
         self.parameters = parameters["params"]
@@ -38,6 +40,8 @@ class Momentum:
     def zero_grad(self):
         for grad in self.grads:
             grad[...] = 0
+
+
 
 class RMSprop:
     def __init__(self, parameters, beta=0.9, lr=0.01, weight_decay=0.0):

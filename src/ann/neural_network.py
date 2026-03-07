@@ -18,7 +18,7 @@ class NeuralNetwork:
 
     def __init__(self, cli_args):
         self.epochs = getattr(cli_args, "epochs", 10)
-        self.batch_size = getattr(cli_args, "batch_size", 62)
+        self.batch_size = getattr(cli_args, "batch_size", 32)
         self.weight_decay = getattr(cli_args, "weight_decay", 0.0)
 
         self.wandb_project = getattr(cli_args, "wandb_project", None)
@@ -30,31 +30,15 @@ class NeuralNetwork:
         self.loss = getattr(cli_args, "loss", "cross_entropy")
 
         self.num_layers = getattr(cli_args, "num_layers", 2)
-        self.hidden_size = getattr(cli_args, "hidden_size", [128, 64])
+        self.hidden_size = getattr(cli_args, "hidden_size", [64, 32])
         self.activation = getattr(cli_args, "activation", "relu")
         self.weight_init = getattr(cli_args, "weight_init", "xavier")
-
-
-
-        # self.epochs = cli_args.epochs
-        # self.batch_size = cli_args.batch_size
-        # self.weight_decay = cli_args.weight_decay
-        # self.wandb_project = cli_args.wandb_project
-        # self.model_save_path = cli_args.model_path
-
-        # self.learning_rate = cli_args.learning_rate
-        # self.optimizer_name = cli_args.optimizer
-        # self.dataset = cli_args.dataset
-        # self.loss = cli_args.loss
-        # self.num_layers = cli_args.num_layers
-        # self.hidden_size = cli_args.hidden_size
-        # self.activation = cli_args.activation
-        # self.weight_init = cli_args.weight_init
 
         self.layers = []
         input_dim = 784
         output_dim = 10
 
+        # Build the network architecture based on CLI arguments
         prev_dim = input_dim
         weight_init = 0 if self.weight_init == "random" else 1
         for i in range(self.num_layers):
@@ -73,20 +57,24 @@ class NeuralNetwork:
 
         self.layers.append(fc(prev_dim, output_dim, weight_init))
 
+        # Set up the loss function
         if self.loss == "cross_entropy":
             self.loss_fn = CrossEntropyWithSoftmax()
         else:
             self.loss_fn = MSE()
 
+        # Load data 
         self.data = load_data(self.dataset)     #(x_train, y_train), (x_test, y_test))
         self.x_train, self.y_train = self.data[0]
         self.x_test, self.y_test = self.data[1]  
 
-
+        # Extracting parameters and gradients for all fully connected layers to pass to the optimizer
         self.parameters = {
             "params": [layer.W for layer in self.layers if isinstance(layer, fc)] + [layer.b for layer in self.layers if isinstance(layer, fc)],
             "grads": [layer.grad_W for layer in self.layers if isinstance(layer, fc)] + [layer.grad_b for layer in self.layers if isinstance(layer, fc)]
         }
+
+        # Setting up the optimizer with a weight decay term for L2 regularization if specified
         if self.optimizer_name == "sgd":
             self.optimizer = SGD(self.parameters, lr=self.learning_rate, weight_decay=self.weight_decay)
         elif self.optimizer_name == "momentum":
@@ -96,6 +84,7 @@ class NeuralNetwork:
         elif self.optimizer_name == "rmsprop":
             self.optimizer = RMSprop(self.parameters, lr=self.learning_rate, weight_decay=self.weight_decay)
 
+    # Forward propagation through all layers to compute logits (pre-softmax outputs)
     def forward(self, X):
         """
         Forward propagation through all layers.
@@ -108,6 +97,7 @@ class NeuralNetwork:
             out = layer(out)
         return out
 
+    # Backward propagation to compute gradients for all layers based on the loss function
     def backward(self, y_true, logits):
         """
         Backward propagation to compute gradients.
@@ -115,6 +105,7 @@ class NeuralNetwork:
         - `grad_Ws[0]` is gradient for the last (output) layer weights,
           `grad_bs[0]` is gradient for the last layer biases, and so on.
         """
+        # Compute loss and initial delta from the loss function
         self.loss_fn.forward(logits, y_true)
         for layer in self.layers:
             if isinstance(layer, fc):
@@ -137,21 +128,22 @@ class NeuralNetwork:
             self.grad_W[i] = gw
             self.grad_b[i] = gb
 
-        self.grad_W = self.grad_W[::-1]
-        self.grad_b = self.grad_b[::-1]
         # print("Shape of grad_Ws:", self.grad_W.shape, self.grad_W[1].shape)
         # print("Shape of grad_bs:", self.grad_b.shape, self.grad_b[1].shape)
-
-
         return self.grad_W, self.grad_b
 
+    # Update weights using the optimizer and then zero out gradients for the next iteration
     def update_weights(self):
         self.optimizer.step()
         for layer in self.layers:
             if isinstance(layer, fc):
                 layer.zero_grad()
 
+
+    # Main training loop
     def train(self):
+
+        # Split training data into train and validation sets for monitoring validation loss during training
         X_train = self.x_train
         y_train = self.y_train
         X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.1, random_state=42)
@@ -165,9 +157,9 @@ class NeuralNetwork:
         X_shuffled = X_train[indices]
         y_shuffled = y_train[indices]
 
+        # Iterating over epochs and batches to perform training
         for epoch in range(epochs):
             
-
             running_loss = 0.0
             num_batches = 0
 
@@ -177,12 +169,14 @@ class NeuralNetwork:
                 X_batch = X_shuffled[start:end]
                 y_batch = y_shuffled[start:end]
 
+                # For NAG, we need to compute the lookahead weights before the forward pass
                 if self.optimizer_name == "nag":
                     original_params = [p.copy() for p in self.parameters["params"]]
 
                     for i, p in enumerate(self.parameters["params"]):
                         p -= self.optimizer.gamma * self.optimizer.v[i]
 
+                # Forward pass to compute logits and loss, then backward pass to compute gradients
                 logits = self.forward(X_batch)
                 self.backward(y_batch, logits)
                 loss = self.loss_fn.forward(logits, y_batch)
@@ -190,23 +184,28 @@ class NeuralNetwork:
                 running_loss += loss
                 num_batches += 1
 
+                # After computing the loss and gradients, we need to reset the weights back to original for NAG before the update step
                 if self.optimizer_name == "nag":
                     for i, p in enumerate(self.parameters["params"]):
                         p[:] = original_params[i]
 
                 self.update_weights()
 
-            eval_test = self.evaluate(self.x_test, self.y_test)
-            eval_train = self.evaluate(X_train, y_train)
+            # use eval_val for validation loss monitoring
             eval_val = self.evaluate(X_val, y_val)
             print(f"Epoch {epoch+1}/{epochs} completed.")
             print(f"Average Loss: {running_loss/num_batches:.4f}, Validation Loss: {eval_val['loss']:.4f}")
+
+        # After training is complete, evaluate on both training and test sets to report final metrics
+        eval_test = self.evaluate(self.x_test, self.y_test)
+        eval_train = self.evaluate(X_train, y_train)
 
         print("Training Accuracy: {:.4f}".format(eval_train["accuracy"]))
         print("Test Accuracy: {:.4f}".format(eval_test["accuracy"]))
         print("Train f1 Score: {:.4f}".format(eval_train["f1"]))
         print("Test f1 Score: {:.4f}".format(eval_test["f1"]))
 
+# Evaluation function to compute loss, accuracy, precision, recall, and F1 score on a given dataset
     def evaluate(self, X, y):
         logits = self.forward(X)
         loss = self.loss_fn.forward(logits, y)
