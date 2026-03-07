@@ -79,7 +79,8 @@ class NeuralNetwork:
             self.loss_fn = MSE()
 
         self.data = load_data(self.dataset)     #(x_train, y_train), (x_test, y_test))
-        self.x_train, self.y_train = self.data[0]   
+        self.x_train, self.y_train = self.data[0]
+        self.x_test, self.y_test = self.data[1]  
 
 
         self.parameters = {
@@ -87,13 +88,13 @@ class NeuralNetwork:
             "grads": [layer.grad_W for layer in self.layers if isinstance(layer, fc)] + [layer.grad_b for layer in self.layers if isinstance(layer, fc)]
         }
         if self.optimizer_name == "sgd":
-            self.optimizer = SGD(self.parameters, lr=self.learning_rate)
+            self.optimizer = SGD(self.parameters, lr=self.learning_rate, weight_decay=self.weight_decay)
         elif self.optimizer_name == "momentum":
-            self.optimizer = Momentum(self.parameters, lr=self.learning_rate)
+            self.optimizer = Momentum(self.parameters, lr=self.learning_rate, weight_decay=self.weight_decay)
         elif self.optimizer_name == "nag":
-            self.optimizer = NAG(self.parameters, lr=self.learning_rate)
+            self.optimizer = NAG(self.parameters, lr=self.learning_rate, weight_decay=self.weight_decay)
         elif self.optimizer_name == "rmsprop":
-            self.optimizer = RMSprop(self.parameters, lr=self.learning_rate)
+            self.optimizer = RMSprop(self.parameters, lr=self.learning_rate, weight_decay=self.weight_decay)
 
     def forward(self, X):
         """
@@ -114,8 +115,6 @@ class NeuralNetwork:
         - `grad_Ws[0]` is gradient for the last (output) layer weights,
           `grad_bs[0]` is gradient for the last layer biases, and so on.
         """
-
-        self.loss_fn.forward(logits, y_true)
         for layer in self.layers:
             if isinstance(layer, fc):
                 layer.zero_grad()
@@ -141,6 +140,8 @@ class NeuralNetwork:
         self.grad_b = self.grad_b[::-1]
         # print("Shape of grad_Ws:", self.grad_W.shape, self.grad_W[1].shape)
         # print("Shape of grad_bs:", self.grad_b.shape, self.grad_b[1].shape)
+
+
         return self.grad_W, self.grad_b
 
     def update_weights(self):
@@ -186,18 +187,22 @@ class NeuralNetwork:
                 num_batches += 1
 
                 self.backward(y_batch, logits)
-
                 if self.optimizer_name == "nag":
                     for i, p in enumerate(self.parameters["params"]):
                         p[:] = original_params[i]
 
                 self.update_weights()
 
-            
-            eval = self.evaluate(X_val, y_val)
-
+            eval_test = self.evaluate(self.x_test, self.y_test)
+            eval_train = self.evaluate(X_train, y_train)
+            eval_val = self.evaluate(X_val, y_val)
             print(f"Epoch {epoch+1}/{epochs} completed.")
-            print(f"Average Loss: {running_loss/num_batches:.4f}, Validation Loss: {eval['loss']:.4f}")
+            print(f"Average Loss: {running_loss/num_batches:.4f}, Validation Loss: {eval_val['loss']:.4f}")
+
+        print("Training Accuracy: {:.4f}".format(eval_train["accuracy"]))
+        print("Validation Accuracy: {:.4f}".format(eval_val["accuracy"]))
+        print("Test Accuracy: {:.4f}".format(eval_test["accuracy"]))
+        return eval_train["accuracy"], eval_val["accuracy"], eval_test["accuracy"], eval_train["loss"], eval_val["loss"], eval_test["loss"]
 
     def evaluate(self, X, y):
         logits = self.forward(X)
@@ -205,6 +210,10 @@ class NeuralNetwork:
         predictions = np.argmax(logits, axis=1)
         true_labels = np.argmax(y, axis=1)
         accuracy = np.mean(predictions == true_labels)
+
+        predictions = np.argmax(logits, axis=1) #temp
+        true_labels = np.argmax(y, axis=1)  #temp
+
 
         precision = precision_score(true_labels, predictions, average='weighted', zero_division=0)
         recall = recall_score(true_labels, predictions, average='weighted', zero_division=0)
@@ -216,8 +225,10 @@ class NeuralNetwork:
             "accuracy": accuracy,
             "precision": precision,
             "recall": recall,
-            "f1": f1
+            "f1": f1,
+
         }
+    
 
     def get_weights(self):
         d = {}
