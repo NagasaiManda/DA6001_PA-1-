@@ -15,51 +15,29 @@ import numpy as np
 #         return -(self.y_true / self.y_preds) / B
 
 
-
-
-
-def softmax(logits):
-    shifted = logits - np.max(logits, axis=1, keepdims=True)
-    exp_values = np.exp(shifted)
-    return exp_values / np.sum(exp_values, axis=1, keepdims=True)
-
-
-class Cross_Entropy:
-
-    def __init__(self):
-        self.probabilities = None
-        self.y_true = None
-
-    def forward(self, logits, y_true):
-        # Compute CE from logits via log-softmax for stable and exact gradients.
-        shifted = logits - np.max(logits, axis=1, keepdims=True)
-        logsumexp = np.log(np.sum(np.exp(shifted), axis=1, keepdims=True))
-        log_probs = shifted - logsumexp
-        self.probabilities = np.exp(log_probs)
-        self.y_true = y_true
-        loss = -np.sum(y_true * log_probs) / logits.shape[0]
-        return loss
-
-    def backward(self):
-        return (self.probabilities - self.y_true) / self.y_true.shape[0]
-
-
-
 class MSE:
+    def forward(self, y_preds, y_true):
+        self.y_preds, self.y_true = y_preds, y_true
+        return np.mean((y_preds - y_true)**2)
 
-    def __init__(self):
-        self.probabilities = None
-        self.y_true = None
+    __call__ = forward
+    def backward(self, y_true=None, y_preds=None):
+        return 2 * (self.y_preds - self.y_true) / self.y_preds.size
 
+
+
+class CrossEntropyWithSoftmax:
     def forward(self, logits, y_true):
-        self.probabilities = softmax(logits)
         self.y_true = y_true
-        loss = np.mean((self.probabilities - y_true) ** 2)
-        return loss
+        logits_shift = logits - np.max(logits, axis=1, keepdims=True)
+        exp_logits = np.exp(logits_shift)
+        self.y_preds = exp_logits / np.sum(exp_logits, axis=1, keepdims=True)
+        logsumexp = np.log(np.sum(exp_logits, axis=1, keepdims=True))
+        log_probs = logits_shift - logsumexp
+        return -np.mean(np.sum(y_true * log_probs, axis=1))
 
-    def backward(self):
-        batch = self.y_true.shape[0]
-        num_classes = self.y_true.shape[1]
-        grad_prob = 2.0 * (self.probabilities - self.y_true) / (batch * num_classes)
-        dot = np.sum(grad_prob * self.probabilities, axis=1, keepdims=True)
-        return self.probabilities * (grad_prob - dot)
+    __call__ = forward
+    def backward(self, y_true=None, logits=None):
+        return (self.y_preds - self.y_true) / self.y_preds.shape[0]
+
+    
