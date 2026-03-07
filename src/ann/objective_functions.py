@@ -39,6 +39,6 @@ class CrossEntropyWithSoftmax:
         logits = logits - np.max(logits, axis=1, keepdims=True)
         exp_logits = np.exp(logits)
         y_preds = exp_logits / np.sum(exp_logits, axis=1, keepdims=True)
-        return (y_preds - self.y_true)/y_preds.shape[0]
+        return (y_preds - y_true)/y_preds.shape[0]
 
     
