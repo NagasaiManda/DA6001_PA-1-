@@ -183,12 +183,12 @@ class NeuralNetwork:
                         p -= self.optimizer.gamma * self.optimizer.v[i]
 
                 logits = self.forward(X_batch)
+                self.backward(y_batch, logits)
                 loss = self.loss_fn.forward(logits, y_batch)
 
                 running_loss += loss
                 num_batches += 1
 
-                self.backward(y_batch, logits)
                 if self.optimizer_name == "nag":
                     for i, p in enumerate(self.parameters["params"]):
                         p[:] = original_params[i]
