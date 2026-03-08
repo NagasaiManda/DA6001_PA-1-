@@ -114,7 +114,7 @@ class NeuralNetwork:
         grad_b_list = []
 
         # Backprop through layers in reverse; collect grads so that index 0 = last layer
-        delta = self.loss_fn.backward(logits, y_true)
+        delta = self.loss_fn.backward(y_true, logits)
         for layer in reversed(self.layers):
             delta = layer.backward(delta)
             if isinstance(layer, fc):

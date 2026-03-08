@@ -15,8 +15,18 @@ import numpy as np
 #         return -(self.y_true / self.y_preds) / B
 
 
+def _ensure_2d(arr):
+    arr = np.asarray(arr)
+    was_1d = arr.ndim == 1
+    if was_1d:
+        arr = arr.reshape(1, -1)
+    return arr, was_1d
+
+
 class MSE:
     def forward(self, logits, y_true):
+        logits, _ = _ensure_2d(logits)
+        y_true, _ = _ensure_2d(y_true)
         logits = logits - np.max(logits, axis=1, keepdims=True)
         exp_logits = np.exp(logits)
         self.y_preds = exp_logits / np.sum(exp_logits, axis=1, keepdims=True)
@@ -25,15 +35,20 @@ class MSE:
 
     __call__ = forward
     def backward(self, y_true, logits):
+        logits, was_1d = _ensure_2d(logits)
+        y_true, _ = _ensure_2d(y_true)
         logits = logits - np.max(logits, axis=1, keepdims=True)
         exp_logits = np.exp(logits)
         y_preds = exp_logits / np.sum(exp_logits, axis=1, keepdims=True)
-        return 2 * (y_preds - y_true) / y_preds.size
+        grad = 2 * (y_preds - y_true) / y_preds.size
+        return grad[0] if was_1d else grad
 
 
 
 class CrossEntropyWithSoftmax:
     def forward(self, logits, y_true):
+        logits, _ = _ensure_2d(logits)
+        y_true, _ = _ensure_2d(y_true)
         self.y_true = y_true
         logits = logits - np.max(logits, axis=1, keepdims=True)
         exp_logits = np.exp(logits)
@@ -44,9 +59,12 @@ class CrossEntropyWithSoftmax:
 
     __call__ = forward
     def backward(self, y_true, logits):
+        logits, was_1d = _ensure_2d(logits)
+        y_true, _ = _ensure_2d(y_true)
         logits = logits - np.max(logits, axis=1, keepdims=True)
         exp_logits = np.exp(logits)
         y_preds = exp_logits / np.sum(exp_logits, axis=1, keepdims=True)
-        return (y_preds - y_true)/y_preds.shape[0]
+        grad = (y_preds - y_true) / y_preds.shape[0]
+        return grad[0] if was_1d else grad
 
     
