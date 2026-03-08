@@ -25,7 +25,7 @@ def softmax(logits):
 
 class MSE:
     def forward(self, logits, y_true):
-        self.y_pred = softmax(logits)
+        self.y_pred = logits
         self.y_true = y_true
         loss = np.mean((self.y_pred - y_true) ** 2)
         return loss
