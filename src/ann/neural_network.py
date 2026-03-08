@@ -37,6 +37,7 @@ class NeuralNetwork:
         self.layers = []
         input_dim = 784
         output_dim = 10
+        self.output_dim = output_dim
 
         # Build the network architecture based on CLI arguments
         prev_dim = input_dim
@@ -75,14 +76,16 @@ class NeuralNetwork:
         }
 
         # Setting up the optimizer with a weight decay term for L2 regularization if specified
+        # Weight decay is applied explicitly in loss/gradients; keep optimizer decay off
+        # to avoid double regularization.
         if self.optimizer_name == "sgd":
-            self.optimizer = SGD(self.parameters, lr=self.learning_rate, weight_decay=self.weight_decay)
+            self.optimizer = SGD(self.parameters, lr=self.learning_rate, weight_decay=0.0)
         elif self.optimizer_name == "momentum":
-            self.optimizer = Momentum(self.parameters, lr=self.learning_rate, weight_decay=self.weight_decay)
+            self.optimizer = Momentum(self.parameters, lr=self.learning_rate, weight_decay=0.0)
         elif self.optimizer_name == "nag":
-            self.optimizer = NAG(self.parameters, lr=self.learning_rate, weight_decay=self.weight_decay)
+            self.optimizer = NAG(self.parameters, lr=self.learning_rate, weight_decay=0.0)
         elif self.optimizer_name == "rmsprop":
-            self.optimizer = RMSprop(self.parameters, lr=self.learning_rate, weight_decay=self.weight_decay)
+            self.optimizer = RMSprop(self.parameters, lr=self.learning_rate, weight_decay=0.0)
 
     # Forward propagation through all layers to compute logits (pre-softmax outputs)
     def forward(self, X):
@@ -106,6 +109,7 @@ class NeuralNetwork:
           `grad_bs[0]` is gradient for the last layer biases, and so on.
         """
         # Compute loss and initial delta from the loss function
+        y_true = self._ensure_one_hot(y_true)
         self.loss_fn.forward(logits, y_true)
         for layer in self.layers:
             if isinstance(layer, fc):
@@ -118,6 +122,8 @@ class NeuralNetwork:
         for layer in reversed(self.layers):
             delta = layer.backward(delta)
             if isinstance(layer, fc):
+                if self.weight_decay > 0.0:
+                    layer.grad_W += self.weight_decay * layer.W
                 grad_W_list.append(layer.grad_W.copy())
                 grad_b_list.append(layer.grad_b.copy())
 
@@ -181,7 +187,7 @@ class NeuralNetwork:
                 # Forward pass to compute logits and loss, then backward pass to compute gradients
                 logits = self.forward(X_batch)
                 self.backward(y_batch, logits)
-                loss = self.loss_fn.forward(logits, y_batch)
+                loss = self.compute_loss(logits, y_batch)
 
                 running_loss += loss
                 num_batches += 1
@@ -212,13 +218,13 @@ class NeuralNetwork:
 # Evaluation function to compute loss, accuracy, precision, recall, and F1 score on a given dataset
     def evaluate(self, X, y):
         logits = self.forward(X)
-        loss = self.loss_fn.forward(logits, y)
+        loss = self.compute_loss(logits, y)
         predictions = np.argmax(logits, axis=1)
-        true_labels = np.argmax(y, axis=1)
+        true_labels = self._labels_from_target(y)
         accuracy = np.mean(predictions == true_labels)
 
         predictions = np.argmax(logits, axis=1) #temp
-        true_labels = np.argmax(y, axis=1)  #temp
+        true_labels = self._labels_from_target(y)  #temp
 
 
         precision = precision_score(true_labels, predictions, average='weighted', zero_division=0)
@@ -259,3 +265,28 @@ class NeuralNetwork:
                     layer.b = weight_dict[b_key].copy()
 
                 idx += 1
+
+    def compute_loss(self, logits, y_true):
+        y_true = self._ensure_one_hot(y_true)
+        loss = self.loss_fn.forward(logits, y_true)
+        if self.weight_decay > 0.0:
+            l2_penalty = 0.0
+            for layer in self.layers:
+                if isinstance(layer, fc):
+                    l2_penalty += np.sum(layer.W ** 2)
+            loss += 0.5 * self.weight_decay * l2_penalty
+        return loss
+
+    def _ensure_one_hot(self, y):
+        y = np.asarray(y)
+        if y.ndim == 2:
+            return y
+        one_hot = np.zeros((y.shape[0], self.output_dim), dtype=float)
+        one_hot[np.arange(y.shape[0]), y.astype(int)] = 1.0
+        return one_hot
+
+    def _labels_from_target(self, y):
+        y = np.asarray(y)
+        if y.ndim == 2:
+            return np.argmax(y, axis=1)
+        return y.astype(int)
